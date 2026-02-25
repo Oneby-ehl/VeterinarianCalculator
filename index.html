@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GREFA · Calculadora · Dosis</title>
+  <title>GREFA · Calculadora</title>
 
   <!-- PWA -->
   <meta name="theme-color" content="#0b0f14" />
@@ -74,7 +74,6 @@
     .warn { margin-top: 10px; font-size: 12px; opacity: .9; color: #ffd36e; display:none; }
     .ok { margin-top: 10px; font-size: 12px; opacity: .9; color: #8bffb0; display:none; }
 
-    .row2 { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .miniTabs { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 0; }
     .miniTabBtn{
       border: 1px solid #263246;
@@ -182,7 +181,7 @@
     <!-- TAB 2: HIDRATACIÓN -->
     <!-- ===================== -->
     <section id="viewHyd" class="card hidden">
-      <h1>Hidratación (SC / VO)</h1>
+      <h1>Hidratación</h1>
 
       <div class="miniTabs">
         <button class="miniTabBtn active" id="modeSC">Subcutánea (SC)</button>
@@ -198,72 +197,16 @@
         </select>
       </div>
 
-      <label>Modo de cálculo</label>
+      <label>% hidratación (según criterio clínico)</label>
       <div class="subgrid2">
-        <select id="h_mode">
-          <option value="simple" selected>Simple (ml/kg)</option>
-          <option value="full">Completo (% deshidratación + mantenimiento + pérdidas)</option>
-        </select>
-        <select disabled>
-          <option selected>—</option>
-        </select>
+        <input id="h_pct" inputmode="decimal" placeholder="Ej: 5" />
+        <select disabled><option selected>%</option></select>
       </div>
 
-      <!-- SIMPLE -->
-      <div id="h_simpleBox">
-        <label>Objetivo indicado (ml/kg)</label>
-        <div class="subgrid2">
-          <input id="h_mlkg" inputmode="decimal" placeholder="Ej: 30" />
-          <select disabled><option selected>ml/kg</option></select>
-        </div>
-
-        <div class="row2">
-          <div>
-            <label>Nº sesiones (SC) / tomas (VO)</label>
-            <input id="h_n" inputmode="numeric" value="1" />
-          </div>
-          <div>
-            <label>Redondeo (ml)</label>
-            <input id="h_round" inputmode="decimal" value="0.1" />
-          </div>
-        </div>
-      </div>
-
-      <!-- FULL -->
-      <div id="h_fullBox" class="hidden">
-        <label>% deshidratación (si procede)</label>
-        <div class="subgrid2">
-          <input id="h_dehyd" inputmode="decimal" placeholder="Ej: 5" />
-          <select disabled><option selected>%</option></select>
-        </div>
-
-        <label>Mantenimiento indicado (ml/kg/día)</label>
-        <div class="subgrid2">
-          <input id="h_maint" inputmode="decimal" placeholder="Ej: 50" />
-          <select disabled><option selected>ml/kg/día</option></select>
-        </div>
-
-        <div class="row2">
-          <div>
-            <label>Horas a cubrir</label>
-            <input id="h_hours" inputmode="numeric" value="24" />
-          </div>
-          <div>
-            <label>Pérdidas/extra (ml)</label>
-            <input id="h_losses" inputmode="decimal" placeholder="Ej: 0" />
-          </div>
-        </div>
-
-        <div class="row2">
-          <div>
-            <label>Nº sesiones (SC) / tomas (VO)</label>
-            <input id="h_n2" inputmode="numeric" value="1" />
-          </div>
-          <div>
-            <label>Redondeo (ml)</label>
-            <input id="h_round2" inputmode="decimal" value="0.1" />
-          </div>
-        </div>
+      <label>Redondeo</label>
+      <div class="subgrid2">
+        <input id="h_round" inputmode="decimal" value="0.1" />
+        <select disabled><option selected>ml</option></select>
       </div>
 
       <div class="btns">
@@ -277,34 +220,54 @@
 
       <div class="result" aria-live="polite">
         <div>
-          <small>Total a administrar</small><br/>
+          <small>Total</small><br/>
           <b id="h_total">—</b>
         </div>
         <small>ml</small>
       </div>
 
-      <div class="result" aria-live="polite">
-        <div>
-          <small id="h_splitLabel">Por sesión / toma</small><br/>
-          <b id="h_each">—</b>
+      <!-- SC breakdown -->
+      <div id="h_scBox">
+        <div class="result" aria-live="polite">
+          <div>
+            <small>Día 1 (1/2 total)</small><br/>
+            <b id="h_d1">—</b>
+          </div>
+          <small>ml</small>
         </div>
-        <small>ml</small>
-      </div>
 
-      <div class="result" aria-live="polite">
-        <div>
-          <small>Ritmo orientativo</small><br/>
-          <b id="h_rate">—</b>
+        <div class="result" aria-live="polite">
+          <div>
+            <small>Día 2 (1/2 de lo que queda)</small><br/>
+            <b id="h_d2">—</b>
+          </div>
+          <small>ml</small>
         </div>
-        <small>ml/h</small>
+
+        <div class="result" aria-live="polite">
+          <div>
+            <small>Día 3 (1/2 de lo que queda)</small><br/>
+            <b id="h_d3">—</b>
+          </div>
+          <small>ml</small>
+        </div>
+
+        <div class="result" aria-live="polite">
+          <div>
+            <small>Restante (tras día 3)</small><br/>
+            <b id="h_rem">—</b>
+          </div>
+          <small>ml</small>
+        </div>
       </div>
 
       <div class="warn" id="h_warn"></div>
       <div class="ok" id="h_ok"></div>
 
       <div class="hint">
-        Esta pestaña calcula volúmenes a partir de valores indicados por veterinario (ml/kg, % deshidratación, mantenimiento, pérdidas).<br/>
-        Verificar siempre pauta, límites por especie/vía y técnica de administración.
+        SC: Total = (% × peso) + (0,05 × peso). VO: Total = (% × peso).<br/>
+        En la app se muestra en ml asumiendo peso en kg y % en tanto por cien.
+        Verificar siempre pauta/vía/límites según especie y criterio veterinario.
       </div>
     </section>
   </div>
@@ -331,7 +294,7 @@
       return pos === -1 ? 0 : Math.min(6, s.length - pos - 1);
     }
 
-    function formatFixed(value, step, minDec=2){
+    function formatFixed(value, step, minDec=1){
       const dec = Math.max(minDec, decimalsForStep(step));
       return value.toFixed(dec);
     }
@@ -341,10 +304,14 @@
       const ok = $(okId);
       if (warn) { warn.style.display = "none"; warn.textContent = ""; }
       if (ok)   { ok.style.display = "none";   ok.textContent = ""; }
-
       if (!text) return;
       if (type === "warn" && warn) { warn.textContent = text; warn.style.display = "block"; }
       if (type === "ok" && ok)     { ok.textContent = text;   ok.style.display = "block"; }
+    }
+
+    function on(id, ev, fn){
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(ev, fn);
     }
 
     // ---------- Tabs ----------
@@ -355,14 +322,15 @@
       $("viewDose").classList.toggle("hidden", !isDose);
       $("viewHyd").classList.toggle("hidden", isDose);
     }
-    function setHydMode(which){
+
+    function setHydRoute(which){
       const isSC = which === "sc";
       $("modeSC").classList.toggle("active", isSC);
       $("modePO").classList.toggle("active", !isSC);
-      $("h_splitLabel").textContent = isSC ? "Por sesión" : "Por toma";
+      $("h_scBox").classList.toggle("hidden", !isSC);
     }
 
-    // ---------- Dose calc ----------
+    // ---------- Shared helpers ----------
     function getPesoKg(pesoId, unitId){
       const pEl = $(pesoId), uEl = $(unitId);
       if (!pEl || !uEl) return NaN;
@@ -371,6 +339,28 @@
       return (uEl.value === "g") ? (p / 1000) : p;
     }
 
+    async function copyText(payload, warnId, okId){
+      try {
+        await navigator.clipboard.writeText(payload);
+        setStatus(warnId, okId, "ok", "Copiado al portapapeles.");
+      } catch {
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = payload;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.focus(); ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          setStatus(warnId, okId, "ok", "Copiado al portapapeles.");
+        } catch {
+          setStatus(warnId, okId, "warn", "El navegador no permitió copiar automáticamente.");
+        }
+      }
+    }
+
+    // ---------- Dose calc ----------
     function getConcMgPerMl(){
       const concEl = $("conc"), unitEl = $("concUnit");
       if (!concEl || !unitEl) return NaN;
@@ -410,157 +400,118 @@
       setStatus("warn","ok", null, null);
     }
 
-    async function copyText(payload, warnId, okId){
-      try {
-        await navigator.clipboard.writeText(payload);
-        setStatus(warnId, okId, "ok", "Copiado al portapapeles.");
-      } catch {
-        try {
-          const ta = document.createElement("textarea");
-          ta.value = payload;
-          ta.style.position = "fixed";
-          ta.style.opacity = "0";
-          document.body.appendChild(ta);
-          ta.focus(); ta.select();
-          document.execCommand("copy");
-          document.body.removeChild(ta);
-          setStatus(warnId, okId, "ok", "Copiado al portapapeles.");
-        } catch {
-          setStatus(warnId, okId, "warn", "El navegador no permitió copiar automáticamente.");
-        }
-      }
-    }
-
     async function copyDose(){
       const txt = $("out") ? $("out").textContent : "—";
       if (!txt || txt === "—") { setStatus("warn","ok","warn","No hay resultado para copiar."); return; }
       await copyText(`${txt} ml`, "warn", "ok");
     }
 
-    // ---------- Hydration calc ----------
-    function showHydModeBoxes(){
-      const m = $("h_mode").value;
-      $("h_simpleBox").classList.toggle("hidden", m !== "simple");
-      $("h_fullBox").classList.toggle("hidden", m !== "full");
-      calcHyd(); // recalcula al cambiar
-    }
-
+    // ---------- Hydration calc (YOUR FORMULAS) ----------
     function calcHyd(){
       setStatus("h_warn","h_ok", null, null);
 
-      const totalEl = $("h_total"), eachEl = $("h_each"), rateEl = $("h_rate");
-      if (!totalEl || !eachEl || !rateEl) return;
+      const totalEl = $("h_total");
+      const d1El = $("h_d1"), d2El = $("h_d2"), d3El = $("h_d3"), remEl = $("h_rem");
+      if (!totalEl) return;
 
       const pesoKg = getPesoKg("h_peso","h_pesoUnit");
-      if (!isFinite(pesoKg) || pesoKg <= 0){
-        totalEl.textContent = "—"; eachEl.textContent = "—"; rateEl.textContent = "—";
+      const pct = parseNum($("h_pct")?.value || "");
+      const step = parseNum($("h_round")?.value || "0.1");
+      const roundStep = (isFinite(step) && step > 0) ? step : 0.1;
+
+      // reset outputs
+      const resetAll = () => {
+        totalEl.textContent = "—";
+        if (d1El) d1El.textContent = "—";
+        if (d2El) d2El.textContent = "—";
+        if (d3El) d3El.textContent = "—";
+        if (remEl) remEl.textContent = "—";
+      };
+
+      if (!isFinite(pesoKg) || pesoKg <= 0 || !isFinite(pct) || pct < 0){
+        resetAll();
         return;
       }
 
-      const mode = $("h_mode").value;
+      const isSC = $("modeSC").classList.contains("active");
 
-      let totalMl = NaN;
-      let n = 1;
-      let roundStep = 0.1;
-      let hours = 24;
+      // Convert % to fraction and convert to ml via *1000 (kg -> L) -> ml
+      const frac = pct / 100;
 
-      if (mode === "simple"){
-        const mlkg = parseNum($("h_mlkg").value);
-        n = Math.max(1, Math.floor(parseNum($("h_n").value) || 1));
-        roundStep = parseNum($("h_round").value);
-        if (!isFinite(mlkg) || mlkg < 0){
-          totalEl.textContent = "—"; eachEl.textContent = "—"; rateEl.textContent = "—";
-          return;
-        }
-        totalMl = pesoKg * mlkg;
-
-        // En simple, el ritmo lo damos asumiendo 24h salvo que el usuario use “completo”
-        hours = 24;
-      } else {
-        const dehyd = parseNum($("h_dehyd").value);      // %
-        const maint = parseNum($("h_maint").value);      // ml/kg/día
-        const losses = parseNum($("h_losses").value) || 0;
-        hours = parseNum($("h_hours").value) || 24;
-
-        n = Math.max(1, Math.floor(parseNum($("h_n2").value) || 1));
-        roundStep = parseNum($("h_round2").value);
-
-        // Déficit (ml) = kg * (%/100) * 1000
-        const deficit = (isFinite(dehyd) && dehyd > 0) ? (pesoKg * (dehyd/100) * 1000) : 0;
-
-        // Mantenimiento proporcional a horas: ml = kg * (ml/kg/día) * (hours/24)
-        const maintMl = (isFinite(maint) && maint > 0) ? (pesoKg * maint * (hours/24)) : 0;
-
-        if (hours <= 0) hours = 24;
-
-        totalMl = deficit + maintMl + (isFinite(losses) ? losses : 0);
-      }
+      // VO total: frac * kg * 1000
+      // SC total: (frac * kg + 0.05 * kg) * 1000
+      const totalMl = isSC
+        ? ( (frac * pesoKg) + (0.05 * pesoKg) ) * 1000
+        : ( frac * pesoKg ) * 1000;
 
       if (!isFinite(totalMl) || totalMl < 0){
-        totalEl.textContent = "—"; eachEl.textContent = "—"; rateEl.textContent = "—";
-        setStatus("h_warn","h_ok","warn","Revisa los datos (valores válidos).");
+        resetAll();
+        setStatus("h_warn","h_ok","warn","Revisa los datos.");
         return;
       }
 
-      // Redondeo seguro
-      const step = (isFinite(roundStep) && roundStep > 0) ? roundStep : 0.1;
-      const totalR = roundTo(totalMl, step);
+      const totalR = roundTo(totalMl, roundStep);
+      totalEl.textContent = formatFixed(totalR, roundStep, 1);
 
-      const each = totalR / n;
-      const eachR = roundTo(each, step);
+      if (isSC) {
+        // Day 1: half of total
+        const d1 = roundTo(totalR / 2, roundStep);
+        const rem1 = totalR - d1;
 
-      const rate = (hours > 0) ? (totalR / hours) : NaN;
+        // Day 2: half of what remains
+        const d2 = roundTo(rem1 / 2, roundStep);
+        const rem2 = rem1 - d2;
 
-      totalEl.textContent = formatFixed(totalR, step, 1);
-      eachEl.textContent = formatFixed(eachR, step, 1);
-      rateEl.textContent = isFinite(rate) ? formatFixed(rate, 0.1, 1) : "—";
+        // Day 3: half of what remains
+        const d3 = roundTo(rem2 / 2, roundStep);
+        const rem3 = roundTo(rem2 - d3, roundStep);
 
-      // avisos suaves
-      if (mode === "full" && parseNum($("h_hours").value) > 0 && parseNum($("h_hours").value) < 6) {
-        setStatus("h_warn","h_ok","warn","Aviso: pocas horas seleccionadas; revisa si es intencional.");
+        d1El.textContent = formatFixed(d1, roundStep, 1);
+        d2El.textContent = formatFixed(d2, roundStep, 1);
+        d3El.textContent = formatFixed(d3, roundStep, 1);
+        remEl.textContent = formatFixed(rem3, roundStep, 1);
+
+        if (totalR > 0 && totalR < 1) {
+          setStatus("h_warn","h_ok","warn","Aviso: volumen muy bajo. Revisa redondeo/precisión.");
+        }
       }
     }
 
     function clearHyd(){
-      ["h_peso","h_mlkg","h_dehyd","h_maint","h_losses"].forEach(id => { const el=$(id); if(el) el.value=""; });
-      if ($("h_hours")) $("h_hours").value = "24";
-      if ($("h_n")) $("h_n").value = "1";
-      if ($("h_n2")) $("h_n2").value = "1";
+      ["h_peso","h_pct"].forEach(id => { const el=$(id); if(el) el.value=""; });
       if ($("h_round")) $("h_round").value = "0.1";
-      if ($("h_round2")) $("h_round2").value = "0.1";
-
       if ($("h_total")) $("h_total").textContent="—";
-      if ($("h_each")) $("h_each").textContent="—";
-      if ($("h_rate")) $("h_rate").textContent="—";
+      ["h_d1","h_d2","h_d3","h_rem"].forEach(id => { const el=$(id); if(el) el.textContent="—"; });
       setStatus("h_warn","h_ok", null, null);
     }
 
     async function copyHyd(){
-      const t = $("h_total") ? $("h_total").textContent : "—";
-      const e = $("h_each") ? $("h_each").textContent : "—";
-      const r = $("h_rate") ? $("h_rate").textContent : "—";
-      if (!t || t === "—") { setStatus("h_warn","h_ok","warn","No hay resultado para copiar."); return; }
+      const pesoKg = getPesoKg("h_peso","h_pesoUnit");
+      const pct = parseNum($("h_pct")?.value || "");
+      const total = $("h_total")?.textContent || "—";
+      if (!total || total === "—") { setStatus("h_warn","h_ok","warn","No hay resultado para copiar."); return; }
 
-      const label = $("modeSC").classList.contains("active") ? "SC" : "VO";
-      const payload = `Hidratación ${label}: total ${t} ml; por dosis ${e} ml; ritmo ${r} ml/h`;
-      await copyText(payload, "h_warn", "h_ok");
+      const isSC = $("modeSC").classList.contains("active");
+      if (isSC) {
+        const d1 = $("h_d1")?.textContent || "—";
+        const d2 = $("h_d2")?.textContent || "—";
+        const d3 = $("h_d3")?.textContent || "—";
+        const rem = $("h_rem")?.textContent || "—";
+        const payload = `Hidratación SC (${pct}% ; ${pesoKg.toFixed(3)} kg): total ${total} ml; D1 ${d1} ml; D2 ${d2} ml; D3 ${d3} ml; restante ${rem} ml`;
+        await copyText(payload, "h_warn", "h_ok");
+      } else {
+        const payload = `Hidratación VO (${pct}% ; ${pesoKg.toFixed(3)} kg): total ${total} ml`;
+        await copyText(payload, "h_warn", "h_ok");
+      }
     }
 
-    // ---------- Robust listeners ----------
-    function on(id, ev, fn){
-      const el = document.getElementById(id);
-      if (el) el.addEventListener(ev, fn);
-    }
-
-    // Main tabs
+    // ---------- Listeners ----------
     on("tabDose","click", () => setMainTab("dose"));
     on("tabHyd","click",  () => setMainTab("hyd"));
 
-    // Hyd mode tabs
-    on("modeSC","click", () => setHydMode("sc"));
-    on("modePO","click", () => setHydMode("po"));
+    on("modeSC","click", () => { setHydRoute("sc"); calcHyd(); });
+    on("modePO","click", () => { setHydRoute("po"); calcHyd(); });
 
-    // Dose
     on("calcBtn","click", calcDose);
     on("clearBtn","click", clearDose);
     on("copyBtn","click", copyDose);
@@ -569,19 +520,16 @@
       on(id, "change", calcDose);
     });
 
-    // Hyd
     on("h_calcBtn","click", calcHyd);
     on("h_clearBtn","click", clearHyd);
     on("h_copyBtn","click", copyHyd);
-    on("h_mode","change", showHydModeBoxes);
-
-    ["h_peso","h_pesoUnit","h_mlkg","h_n","h_round","h_dehyd","h_maint","h_hours","h_losses","h_n2","h_round2"].forEach(id => {
+    ["h_peso","h_pesoUnit","h_pct","h_round"].forEach(id => {
       on(id, "input", calcHyd);
       on(id, "change", calcHyd);
     });
 
     // Init
-    showHydModeBoxes();
+    setHydRoute("sc");
     calcDose();
     calcHyd();
 
