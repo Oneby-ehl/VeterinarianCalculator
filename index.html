@@ -241,13 +241,7 @@
       }
     }
 
-    function swapConcUnitKeepPhysical(){
-      const c = parseNum($("conc").value);
-      if (!isFinite(c) || c <= 0) {
-        $("concUnit").value = ($("concUnit").value === "mgml") ? "mgL" : "mgml";
-        calc();
-        return;
-      }
+
       const unit = $("concUnit").value;
       if (unit === "mgml") {
         $("conc").value = (c * 1000).toString();
@@ -262,7 +256,6 @@
     $("calcBtn").addEventListener("click", calc);
     $("clearBtn").addEventListener("click", clearAll);
     $("copyBtn").addEventListener("click", copyResult);
-    $("swapBtn").addEventListener("click", swapConcUnitKeepPhysical);
 
     ["peso","pesoUnit","dosis","conc","concUnit","redondeo"].forEach(id => {
       $(id).addEventListener("input", calc);
