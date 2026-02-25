@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GREFA · Calculadora</title>
+  <title>GREFA · Calculadora Dosis</title>
 
   <!-- PWA -->
   <meta name="theme-color" content="#0b0f14" />
@@ -197,10 +197,14 @@
         </select>
       </div>
 
-      <label>% hidratación (según criterio clínico)</label>
+      <label>% hidratación (introducir como porcentaje, ej: 7 = 7%)</label>
       <div class="subgrid2">
-        <input id="h_pct" inputmode="decimal" placeholder="Ej: 5" />
+        <input id="h_pct" inputmode="decimal" placeholder="Ej: 7" />
         <select disabled><option selected>%</option></select>
+      </div>
+
+      <div class="hint">
+        Nota: si alguien introduce 0,07 también se interpreta como 7% automáticamente.
       </div>
 
       <label>Redondeo</label>
@@ -266,7 +270,7 @@
 
       <div class="hint">
         SC: Total = (% × peso) + (0,05 × peso). VO: Total = (% × peso).<br/>
-        En la app se muestra en ml asumiendo peso en kg y % en tanto por cien.
+        (En ml; peso en kg; % convertido internamente a decimal).
         Verificar siempre pauta/vía/límites según especie y criterio veterinario.
       </div>
     </section>
@@ -339,6 +343,14 @@
       return (uEl.value === "g") ? (p / 1000) : p;
     }
 
+    // Convierte lo que introduce el usuario a fracción decimal:
+    // - si introduce 7  -> 0.07
+    // - si introduce 0.07 -> 0.07
+    function pctToFraction(pctInput){
+      if (!isFinite(pctInput) || pctInput < 0) return NaN;
+      return (pctInput > 1) ? (pctInput / 100) : pctInput;
+    }
+
     async function copyText(payload, warnId, okId){
       try {
         await navigator.clipboard.writeText(payload);
@@ -406,7 +418,7 @@
       await copyText(`${txt} ml`, "warn", "ok");
     }
 
-    // ---------- Hydration calc (YOUR FORMULAS) ----------
+    // ---------- Hydration calc (your formulas) ----------
     function calcHyd(){
       setStatus("h_warn","h_ok", null, null);
 
@@ -415,11 +427,12 @@
       if (!totalEl) return;
 
       const pesoKg = getPesoKg("h_peso","h_pesoUnit");
-      const pct = parseNum($("h_pct")?.value || "");
-      const step = parseNum($("h_round")?.value || "0.1");
-      const roundStep = (isFinite(step) && step > 0) ? step : 0.1;
+      const pctInput = parseNum($("h_pct")?.value || "");
+      const frac = pctToFraction(pctInput);
 
-      // reset outputs
+      const stepIn = parseNum($("h_round")?.value || "0.1");
+      const roundStep = (isFinite(stepIn) && stepIn > 0) ? stepIn : 0.1;
+
       const resetAll = () => {
         totalEl.textContent = "—";
         if (d1El) d1El.textContent = "—";
@@ -428,21 +441,23 @@
         if (remEl) remEl.textContent = "—";
       };
 
-      if (!isFinite(pesoKg) || pesoKg <= 0 || !isFinite(pct) || pct < 0){
+      if (!isFinite(pesoKg) || pesoKg <= 0 || !isFinite(frac) || frac < 0){
         resetAll();
         return;
       }
 
+      // Guardrail suave: valores raros
+      if (frac > 0.5) {
+        setStatus("h_warn","h_ok","warn","Aviso: % muy alto. ¿Has introducido 70 en vez de 7?");
+      }
+
       const isSC = $("modeSC").classList.contains("active");
 
-      // Convert % to fraction and convert to ml via *1000 (kg -> L) -> ml
-      const frac = pct / 100;
-
-      // VO total: frac * kg * 1000
-      // SC total: (frac * kg + 0.05 * kg) * 1000
+      // VO total: (frac * kg) * 1000
+      // SC total: ((frac * kg) + (0.05 * kg)) * 1000
       const totalMl = isSC
-        ? ( (frac * pesoKg) + (0.05 * pesoKg) ) * 1000
-        : ( frac * pesoKg ) * 1000;
+        ? ((frac * pesoKg) + (0.05 * pesoKg)) * 1000
+        : (frac * pesoKg) * 1000;
 
       if (!isFinite(totalMl) || totalMl < 0){
         resetAll();
@@ -454,15 +469,13 @@
       totalEl.textContent = formatFixed(totalR, roundStep, 1);
 
       if (isSC) {
-        // Day 1: half of total
+        // Día 1 = 1/2 total; Día 2 = 1/2 restante; Día 3 = 1/2 restante
         const d1 = roundTo(totalR / 2, roundStep);
         const rem1 = totalR - d1;
 
-        // Day 2: half of what remains
         const d2 = roundTo(rem1 / 2, roundStep);
         const rem2 = rem1 - d2;
 
-        // Day 3: half of what remains
         const d3 = roundTo(rem2 / 2, roundStep);
         const rem3 = roundTo(rem2 - d3, roundStep);
 
@@ -470,10 +483,6 @@
         d2El.textContent = formatFixed(d2, roundStep, 1);
         d3El.textContent = formatFixed(d3, roundStep, 1);
         remEl.textContent = formatFixed(rem3, roundStep, 1);
-
-        if (totalR > 0 && totalR < 1) {
-          setStatus("h_warn","h_ok","warn","Aviso: volumen muy bajo. Revisa redondeo/precisión.");
-        }
       }
     }
 
@@ -487,20 +496,24 @@
 
     async function copyHyd(){
       const pesoKg = getPesoKg("h_peso","h_pesoUnit");
-      const pct = parseNum($("h_pct")?.value || "");
+      const pctInput = parseNum($("h_pct")?.value || "");
+      const frac = pctToFraction(pctInput);
+
       const total = $("h_total")?.textContent || "—";
       if (!total || total === "—") { setStatus("h_warn","h_ok","warn","No hay resultado para copiar."); return; }
 
       const isSC = $("modeSC").classList.contains("active");
+      const pctShown = isFinite(pctInput) ? pctInput : "—";
+
       if (isSC) {
         const d1 = $("h_d1")?.textContent || "—";
         const d2 = $("h_d2")?.textContent || "—";
         const d3 = $("h_d3")?.textContent || "—";
         const rem = $("h_rem")?.textContent || "—";
-        const payload = `Hidratación SC (${pct}% ; ${pesoKg.toFixed(3)} kg): total ${total} ml; D1 ${d1} ml; D2 ${d2} ml; D3 ${d3} ml; restante ${rem} ml`;
+        const payload = `Hidratación SC (${pctShown}% ; ${pesoKg.toFixed(3)} kg; frac=${isFinite(frac)?frac.toFixed(4):"—"}): total ${total} ml; D1 ${d1} ml; D2 ${d2} ml; D3 ${d3} ml; restante ${rem} ml`;
         await copyText(payload, "h_warn", "h_ok");
       } else {
-        const payload = `Hidratación VO (${pct}% ; ${pesoKg.toFixed(3)} kg): total ${total} ml`;
+        const payload = `Hidratación VO (${pctShown}% ; ${pesoKg.toFixed(3)} kg; frac=${isFinite(frac)?frac.toFixed(4):"—"}): total ${total} ml`;
         await copyText(payload, "h_warn", "h_ok");
       }
     }
