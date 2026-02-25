@@ -1,23 +1,13 @@
 {
-  "name": "Calculadora de dosis",
-  "short_name": "Dosis",
-  "start_url": "./index.html",
+  "name": "Calculadora de dosis — GREFA",
+  "short_name": "GREFA Dosis",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b0f14",
   "theme_color": "#0b0f14",
-  "description": "Calculadora rápida de dosis (mg/kg → ml) con soporte para g/kg y mg/ml o mg/L. Offline.",
   "icons": [
-    "icons": [
-  {
-    "src": "icons/icon-192.png",
-    "sizes": "192x192",
-    "type": "image/png"
-  },
-  {
-    "src": "icons/icon-512.png",
-    "sizes": "512x512",
-    "type": "image/png"
-  }
-]
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }
