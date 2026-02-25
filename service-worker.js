@@ -1,4 +1,4 @@
-const CACHE_NAME = "dosis-pwa-v2";
+const CACHE_NAME = "dosis-pwa-v4";
 const ASSETS = [
   "./",
   "./index.html",
