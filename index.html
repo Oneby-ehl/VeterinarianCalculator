@@ -3,56 +3,118 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Calculadora de dosis de medicamentos — GREFA</title>
+  <title>GREFA · Calculadora · Dosis</title>
 
   <!-- PWA -->
   <meta name="theme-color" content="#0b0f14" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icons/icon-192.png" type="image/png" />
+
   <style>
     :root { --pad: 16px; }
     body {
-      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background: #0b0f14; color: #e8eef6;
     }
-    .wrap { max-width: 520px; margin: 0 auto; padding: 24px var(--pad); }
+    .wrap { max-width: 560px; margin: 0 auto; padding: 18px var(--pad) 28px; }
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 10px; margin-bottom: 12px;
+    }
+    .brand { font-weight: 750; letter-spacing:.2px; opacity:.95; }
+    .tabs {
+      display:grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin: 10px 0 14px;
+    }
+    .tabbtn{
+      border: 1px solid #263246;
+      background: #111a2a;
+      color:#e8eef6;
+      padding: 12px 12px;
+      border-radius: 14px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .tabbtn.active{
+      background:#2d5bff;
+      border-color:#2d5bff;
+      font-weight: 700;
+    }
+
     .card {
       background: #121826; border: 1px solid #1f2a3a; border-radius: 18px;
-      padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
     }
-    h1 { font-size: 18px; margin: 0 0 12px; font-weight: 650; letter-spacing: .2px;}
-    label { display: block; font-size: 13px; opacity: .85; margin: 14px 0 6px; }
+    h1 { font-size: 16px; margin: 0 0 10px; font-weight: 750; letter-spacing: .2px;}
+    label { display: block; font-size: 13px; opacity: .85; margin: 12px 0 6px; }
     input, select {
-      width: 100%; font-size: 18px; padding: 14px 12px;
+      width: 100%; font-size: 18px; padding: 13px 12px;
       border-radius: 14px; border: 1px solid #263246; background: #0e1421; color: #e8eef6;
       outline: none;
     }
     input:focus, select:focus { border-color: #4b7bec; }
-    .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .subgrid { display:grid; grid-template-columns: 1fr 140px; gap: 10px; align-items: center; }
+    .subgrid2 { display:grid; grid-template-columns: 1fr 140px; gap: 10px; align-items: center; }
+    .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
     button {
-      font-size: 16px; padding: 14px 12px; border-radius: 14px; border: 1px solid #263246;
+      font-size: 16px; padding: 13px 12px; border-radius: 14px; border: 1px solid #263246;
       background: #18243a; color: #e8eef6; cursor: pointer;
     }
-    button.primary { background: #2d5bff; border-color: #2d5bff; font-weight: 650; }
+    button.primary { background: #2d5bff; border-color: #2d5bff; font-weight: 750; }
     button.ghost { background: #111a2a; }
     .result {
-      margin-top: 16px; padding: 16px; border-radius: 16px;
+      margin-top: 14px; padding: 14px; border-radius: 16px;
       background: #0e1421; border: 1px dashed #2a3a55;
       display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
     }
     .result small { opacity: .7; }
     .result b { font-size: 34px; letter-spacing: .3px; }
-    .hint { margin-top: 12px; font-size: 12px; opacity: .65; line-height: 1.35; }
+    .hint { margin-top: 10px; font-size: 12px; opacity: .65; line-height: 1.35; }
     .warn { margin-top: 10px; font-size: 12px; opacity: .9; color: #ffd36e; display:none; }
     .ok { margin-top: 10px; font-size: 12px; opacity: .9; color: #8bffb0; display:none; }
-    .subgrid { display:grid; grid-template-columns: 1fr 140px; gap: 10px; align-items: center; }
-    .subgrid2 { display:grid; grid-template-columns: 1fr 140px; gap: 10px; align-items: center; }
+
+    .row2 { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .miniTabs { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 0; }
+    .miniTabBtn{
+      border: 1px solid #263246;
+      background: #0e1421;
+      color:#e8eef6;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 14px;
+      cursor: pointer;
+      opacity: .9;
+    }
+    .miniTabBtn.active{
+      background:#18243a;
+      border-color:#4b7bec;
+      font-weight: 700;
+      opacity: 1;
+    }
+
+    .hidden { display:none !important; }
+    .spacer { height: 8px; }
   </style>
 </head>
+
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>Calculadora de dosis — GREFA</h1>
+    <div class="topbar">
+      <div class="brand">🦉 GREFA · Calculadoras</div>
+      <div style="font-size:12px;opacity:.7">offline</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tabbtn active" id="tabDose">Dosis</button>
+      <button class="tabbtn" id="tabHyd">Hidratación</button>
+    </div>
+
+    <!-- ===================== -->
+    <!-- TAB 1: DOSIS -->
+    <!-- ===================== -->
+    <section id="viewDose" class="card">
+      <h1>Calculadora de dosis (mg/kg → ml)</h1>
 
       <label>Peso</label>
       <div class="subgrid">
@@ -93,7 +155,6 @@
         <button id="clearBtn">Limpiar</button>
       </div>
 
-      <!-- Solo copiar, sin "cambiar unidad" -->
       <div class="btns" style="margin-top:10px; grid-template-columns: 1fr;">
         <button class="ghost" id="copyBtn">Copiar resultado</button>
       </div>
@@ -113,7 +174,139 @@
         Internamente: (peso en kg × dosis mg/kg) / concentración (mg/ml).<br/>
         Herramienta de cálculo: verificar siempre dosis y unidades (criterio veterinario).
       </div>
-    </div>
+    </section>
+
+    <div class="spacer"></div>
+
+    <!-- ===================== -->
+    <!-- TAB 2: HIDRATACIÓN -->
+    <!-- ===================== -->
+    <section id="viewHyd" class="card hidden">
+      <h1>Hidratación (SC / VO)</h1>
+
+      <div class="miniTabs">
+        <button class="miniTabBtn active" id="modeSC">Subcutánea (SC)</button>
+        <button class="miniTabBtn" id="modePO">Vía oral (VO)</button>
+      </div>
+
+      <label>Peso</label>
+      <div class="subgrid">
+        <input id="h_peso" inputmode="decimal" placeholder="Ej: 1200" />
+        <select id="h_pesoUnit" aria-label="Unidad de peso">
+          <option value="g" selected>g</option>
+          <option value="kg">kg</option>
+        </select>
+      </div>
+
+      <label>Modo de cálculo</label>
+      <div class="subgrid2">
+        <select id="h_mode">
+          <option value="simple" selected>Simple (ml/kg)</option>
+          <option value="full">Completo (% deshidratación + mantenimiento + pérdidas)</option>
+        </select>
+        <select disabled>
+          <option selected>—</option>
+        </select>
+      </div>
+
+      <!-- SIMPLE -->
+      <div id="h_simpleBox">
+        <label>Objetivo indicado (ml/kg)</label>
+        <div class="subgrid2">
+          <input id="h_mlkg" inputmode="decimal" placeholder="Ej: 30" />
+          <select disabled><option selected>ml/kg</option></select>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Nº sesiones (SC) / tomas (VO)</label>
+            <input id="h_n" inputmode="numeric" value="1" />
+          </div>
+          <div>
+            <label>Redondeo (ml)</label>
+            <input id="h_round" inputmode="decimal" value="0.1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- FULL -->
+      <div id="h_fullBox" class="hidden">
+        <label>% deshidratación (si procede)</label>
+        <div class="subgrid2">
+          <input id="h_dehyd" inputmode="decimal" placeholder="Ej: 5" />
+          <select disabled><option selected>%</option></select>
+        </div>
+
+        <label>Mantenimiento indicado (ml/kg/día)</label>
+        <div class="subgrid2">
+          <input id="h_maint" inputmode="decimal" placeholder="Ej: 50" />
+          <select disabled><option selected>ml/kg/día</option></select>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Horas a cubrir</label>
+            <input id="h_hours" inputmode="numeric" value="24" />
+          </div>
+          <div>
+            <label>Pérdidas/extra (ml)</label>
+            <input id="h_losses" inputmode="decimal" placeholder="Ej: 0" />
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Nº sesiones (SC) / tomas (VO)</label>
+            <input id="h_n2" inputmode="numeric" value="1" />
+          </div>
+          <div>
+            <label>Redondeo (ml)</label>
+            <input id="h_round2" inputmode="decimal" value="0.1" />
+          </div>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button class="primary" id="h_calcBtn">Calcular</button>
+        <button id="h_clearBtn">Limpiar</button>
+      </div>
+
+      <div class="btns" style="margin-top:10px; grid-template-columns: 1fr;">
+        <button class="ghost" id="h_copyBtn">Copiar resultado</button>
+      </div>
+
+      <div class="result" aria-live="polite">
+        <div>
+          <small>Total a administrar</small><br/>
+          <b id="h_total">—</b>
+        </div>
+        <small>ml</small>
+      </div>
+
+      <div class="result" aria-live="polite">
+        <div>
+          <small id="h_splitLabel">Por sesión / toma</small><br/>
+          <b id="h_each">—</b>
+        </div>
+        <small>ml</small>
+      </div>
+
+      <div class="result" aria-live="polite">
+        <div>
+          <small>Ritmo orientativo</small><br/>
+          <b id="h_rate">—</b>
+        </div>
+        <small>ml/h</small>
+      </div>
+
+      <div class="warn" id="h_warn"></div>
+      <div class="ok" id="h_ok"></div>
+
+      <div class="hint">
+        Esta pestaña calcula volúmenes a partir de valores indicados por veterinario (ml/kg, % deshidratación, mantenimiento, pérdidas).<br/>
+        Verificar siempre pauta, límites por especie/vía y técnica de administración.
+      </div>
+    </section>
   </div>
 
   <script>
@@ -138,154 +331,261 @@
       return pos === -1 ? 0 : Math.min(6, s.length - pos - 1);
     }
 
-    function formatMl(value, step){
-      const dec = Math.max(2, decimalsForStep(step)); // mínimo 2 por legibilidad
+    function formatFixed(value, step, minDec=2){
+      const dec = Math.max(minDec, decimalsForStep(step));
       return value.toFixed(dec);
     }
 
-    function setStatus(type, text){
-      const warn = $("warn");
-      const ok = $("ok");
+    function setStatus(warnId, okId, type, text){
+      const warn = $(warnId);
+      const ok = $(okId);
       if (warn) { warn.style.display = "none"; warn.textContent = ""; }
       if (ok)   { ok.style.display = "none";   ok.textContent = ""; }
 
       if (!text) return;
-      if (type === "warn" && warn) {
-        warn.textContent = text;
-        warn.style.display = "block";
-      } else if (type === "ok" && ok) {
-        ok.textContent = text;
-        ok.style.display = "block";
-      }
+      if (type === "warn" && warn) { warn.textContent = text; warn.style.display = "block"; }
+      if (type === "ok" && ok)     { ok.textContent = text;   ok.style.display = "block"; }
     }
 
-    function getPesoKg(){
-      const pesoEl = $("peso");
-      const unitEl = $("pesoUnit");
-      if (!pesoEl || !unitEl) return NaN;
+    // ---------- Tabs ----------
+    function setMainTab(which){
+      const isDose = which === "dose";
+      $("tabDose").classList.toggle("active", isDose);
+      $("tabHyd").classList.toggle("active", !isDose);
+      $("viewDose").classList.toggle("hidden", !isDose);
+      $("viewHyd").classList.toggle("hidden", isDose);
+    }
+    function setHydMode(which){
+      const isSC = which === "sc";
+      $("modeSC").classList.toggle("active", isSC);
+      $("modePO").classList.toggle("active", !isSC);
+      $("h_splitLabel").textContent = isSC ? "Por sesión" : "Por toma";
+    }
 
-      const p = parseNum(pesoEl.value);
-      const unit = unitEl.value;
+    // ---------- Dose calc ----------
+    function getPesoKg(pesoId, unitId){
+      const pEl = $(pesoId), uEl = $(unitId);
+      if (!pEl || !uEl) return NaN;
+      const p = parseNum(pEl.value);
       if (!isFinite(p) || p < 0) return NaN;
-
-      return unit === "g" ? (p / 1000) : p;
+      return (uEl.value === "g") ? (p / 1000) : p;
     }
 
     function getConcMgPerMl(){
-      const concEl = $("conc");
-      const unitEl = $("concUnit");
+      const concEl = $("conc"), unitEl = $("concUnit");
       if (!concEl || !unitEl) return NaN;
-
       const c = parseNum(concEl.value);
-      const unit = unitEl.value;
       if (!isFinite(c) || c <= 0) return NaN;
-
-      // mg/L -> mg/ml
-      return unit === "mgL" ? (c / 1000) : c;
+      return (unitEl.value === "mgL") ? (c / 1000) : c;
     }
 
-    function calc(){
-      setStatus(null, null);
+    function calcDose(){
+      setStatus("warn","ok", null, null);
 
-      const dosisEl = $("dosis");
-      const redondeoEl = $("redondeo");
       const outEl = $("out");
-
-      const pesoKg = getPesoKg();
-      const dosis = dosisEl ? parseNum(dosisEl.value) : NaN;
-      const concMgMl = getConcMgPerMl();
-      const step = redondeoEl ? parseNum(redondeoEl.value) : NaN;
-
       if (!outEl) return;
+
+      const pesoKg = getPesoKg("peso","pesoUnit");
+      const dosis = $("dosis") ? parseNum($("dosis").value) : NaN;
+      const concMgMl = getConcMgPerMl();
+      const step = $("redondeo") ? parseNum($("redondeo").value) : 0.01;
 
       if (![pesoKg, dosis, concMgMl].every(n => isFinite(n)) || dosis < 0){
         outEl.textContent = "—";
-        // No molestamos si aún están vacíos
-        if ((dosisEl && dosisEl.value.trim()) || ($("peso") && $("peso").value.trim()) || ($("conc") && $("conc").value.trim())) {
-          setStatus("warn", "Revisa los datos (números válidos; concentración > 0).");
-        }
         return;
       }
 
       const ml = (pesoKg * dosis) / concMgMl;
+      const mlR = (isFinite(step) && step > 0) ? roundTo(ml, step) : ml;
 
-      const mlRounded = isFinite(step) && step > 0 ? roundTo(ml, step) : ml;
+      outEl.textContent = formatFixed(mlR, step, 2);
 
-      if (!isFinite(mlRounded)) {
-        outEl.textContent = "—";
-        setStatus("warn", "No se pudo calcular. Revisa unidades/valores.");
-        return;
-      }
-
-      outEl.textContent = formatMl(mlRounded, isFinite(step) && step > 0 ? step : 0.01);
-
-      if (mlRounded > 10) {
-        setStatus("warn", "Aviso: volumen alto. Confirma concentración/unidades.");
-      } else if (mlRounded > 0 && mlRounded < 0.02) {
-        setStatus("warn", "Aviso: volumen muy bajo. Considera dilución/precisión de jeringa.");
-      }
+      if (mlR > 10) setStatus("warn","ok", "warn", "Aviso: volumen alto. Confirma concentración/unidades.");
+      else if (mlR > 0 && mlR < 0.02) setStatus("warn","ok", "warn", "Aviso: volumen muy bajo. Considera dilución/precisión de jeringa.");
     }
 
-    function clearAll(){
-      const ids = ["peso","dosis","conc"];
-      ids.forEach(id => { const el = $(id); if (el) el.value = ""; });
-
-      const outEl = $("out");
-      if (outEl) outEl.textContent = "—";
-      setStatus(null, null);
+    function clearDose(){
+      ["peso","dosis","conc"].forEach(id => { const el=$(id); if(el) el.value=""; });
+      if ($("out")) $("out").textContent="—";
+      setStatus("warn","ok", null, null);
     }
 
-    async function copyResult(){
-      setStatus(null, null);
-
-      const outEl = $("out");
-      if (!outEl) return;
-
-      const txt = outEl.textContent;
-      if (!txt || txt === "—") {
-        setStatus("warn", "No hay resultado para copiar.");
-        return;
-      }
-
-      const payload = `${txt} ml`;
-
+    async function copyText(payload, warnId, okId){
       try {
         await navigator.clipboard.writeText(payload);
-        setStatus("ok", "Copiado al portapapeles.");
-      } catch (e) {
+        setStatus(warnId, okId, "ok", "Copiado al portapapeles.");
+      } catch {
         try {
           const ta = document.createElement("textarea");
           ta.value = payload;
           ta.style.position = "fixed";
           ta.style.opacity = "0";
           document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
+          ta.focus(); ta.select();
           document.execCommand("copy");
           document.body.removeChild(ta);
-          setStatus("ok", "Copiado al portapapeles.");
-        } catch (e2) {
-          setStatus("warn", "El navegador no permitió copiar automáticamente.");
+          setStatus(warnId, okId, "ok", "Copiado al portapapeles.");
+        } catch {
+          setStatus(warnId, okId, "warn", "El navegador no permitió copiar automáticamente.");
         }
       }
     }
 
-    // Listeners robustos (si falta un elemento, no rompe)
+    async function copyDose(){
+      const txt = $("out") ? $("out").textContent : "—";
+      if (!txt || txt === "—") { setStatus("warn","ok","warn","No hay resultado para copiar."); return; }
+      await copyText(`${txt} ml`, "warn", "ok");
+    }
+
+    // ---------- Hydration calc ----------
+    function showHydModeBoxes(){
+      const m = $("h_mode").value;
+      $("h_simpleBox").classList.toggle("hidden", m !== "simple");
+      $("h_fullBox").classList.toggle("hidden", m !== "full");
+      calcHyd(); // recalcula al cambiar
+    }
+
+    function calcHyd(){
+      setStatus("h_warn","h_ok", null, null);
+
+      const totalEl = $("h_total"), eachEl = $("h_each"), rateEl = $("h_rate");
+      if (!totalEl || !eachEl || !rateEl) return;
+
+      const pesoKg = getPesoKg("h_peso","h_pesoUnit");
+      if (!isFinite(pesoKg) || pesoKg <= 0){
+        totalEl.textContent = "—"; eachEl.textContent = "—"; rateEl.textContent = "—";
+        return;
+      }
+
+      const mode = $("h_mode").value;
+
+      let totalMl = NaN;
+      let n = 1;
+      let roundStep = 0.1;
+      let hours = 24;
+
+      if (mode === "simple"){
+        const mlkg = parseNum($("h_mlkg").value);
+        n = Math.max(1, Math.floor(parseNum($("h_n").value) || 1));
+        roundStep = parseNum($("h_round").value);
+        if (!isFinite(mlkg) || mlkg < 0){
+          totalEl.textContent = "—"; eachEl.textContent = "—"; rateEl.textContent = "—";
+          return;
+        }
+        totalMl = pesoKg * mlkg;
+
+        // En simple, el ritmo lo damos asumiendo 24h salvo que el usuario use “completo”
+        hours = 24;
+      } else {
+        const dehyd = parseNum($("h_dehyd").value);      // %
+        const maint = parseNum($("h_maint").value);      // ml/kg/día
+        const losses = parseNum($("h_losses").value) || 0;
+        hours = parseNum($("h_hours").value) || 24;
+
+        n = Math.max(1, Math.floor(parseNum($("h_n2").value) || 1));
+        roundStep = parseNum($("h_round2").value);
+
+        // Déficit (ml) = kg * (%/100) * 1000
+        const deficit = (isFinite(dehyd) && dehyd > 0) ? (pesoKg * (dehyd/100) * 1000) : 0;
+
+        // Mantenimiento proporcional a horas: ml = kg * (ml/kg/día) * (hours/24)
+        const maintMl = (isFinite(maint) && maint > 0) ? (pesoKg * maint * (hours/24)) : 0;
+
+        if (hours <= 0) hours = 24;
+
+        totalMl = deficit + maintMl + (isFinite(losses) ? losses : 0);
+      }
+
+      if (!isFinite(totalMl) || totalMl < 0){
+        totalEl.textContent = "—"; eachEl.textContent = "—"; rateEl.textContent = "—";
+        setStatus("h_warn","h_ok","warn","Revisa los datos (valores válidos).");
+        return;
+      }
+
+      // Redondeo seguro
+      const step = (isFinite(roundStep) && roundStep > 0) ? roundStep : 0.1;
+      const totalR = roundTo(totalMl, step);
+
+      const each = totalR / n;
+      const eachR = roundTo(each, step);
+
+      const rate = (hours > 0) ? (totalR / hours) : NaN;
+
+      totalEl.textContent = formatFixed(totalR, step, 1);
+      eachEl.textContent = formatFixed(eachR, step, 1);
+      rateEl.textContent = isFinite(rate) ? formatFixed(rate, 0.1, 1) : "—";
+
+      // avisos suaves
+      if (mode === "full" && parseNum($("h_hours").value) > 0 && parseNum($("h_hours").value) < 6) {
+        setStatus("h_warn","h_ok","warn","Aviso: pocas horas seleccionadas; revisa si es intencional.");
+      }
+    }
+
+    function clearHyd(){
+      ["h_peso","h_mlkg","h_dehyd","h_maint","h_losses"].forEach(id => { const el=$(id); if(el) el.value=""; });
+      if ($("h_hours")) $("h_hours").value = "24";
+      if ($("h_n")) $("h_n").value = "1";
+      if ($("h_n2")) $("h_n2").value = "1";
+      if ($("h_round")) $("h_round").value = "0.1";
+      if ($("h_round2")) $("h_round2").value = "0.1";
+
+      if ($("h_total")) $("h_total").textContent="—";
+      if ($("h_each")) $("h_each").textContent="—";
+      if ($("h_rate")) $("h_rate").textContent="—";
+      setStatus("h_warn","h_ok", null, null);
+    }
+
+    async function copyHyd(){
+      const t = $("h_total") ? $("h_total").textContent : "—";
+      const e = $("h_each") ? $("h_each").textContent : "—";
+      const r = $("h_rate") ? $("h_rate").textContent : "—";
+      if (!t || t === "—") { setStatus("h_warn","h_ok","warn","No hay resultado para copiar."); return; }
+
+      const label = $("modeSC").classList.contains("active") ? "SC" : "VO";
+      const payload = `Hidratación ${label}: total ${t} ml; por dosis ${e} ml; ritmo ${r} ml/h`;
+      await copyText(payload, "h_warn", "h_ok");
+    }
+
+    // ---------- Robust listeners ----------
     function on(id, ev, fn){
       const el = document.getElementById(id);
       if (el) el.addEventListener(ev, fn);
     }
 
-    on("calcBtn","click", calc);
-    on("clearBtn","click", clearAll);
-    on("copyBtn","click", copyResult);
+    // Main tabs
+    on("tabDose","click", () => setMainTab("dose"));
+    on("tabHyd","click",  () => setMainTab("hyd"));
 
+    // Hyd mode tabs
+    on("modeSC","click", () => setHydMode("sc"));
+    on("modePO","click", () => setHydMode("po"));
+
+    // Dose
+    on("calcBtn","click", calcDose);
+    on("clearBtn","click", clearDose);
+    on("copyBtn","click", copyDose);
     ["peso","pesoUnit","dosis","conc","concUnit","redondeo"].forEach(id => {
-      on(id, "input", calc);
-      on(id, "change", calc);
+      on(id, "input", calcDose);
+      on(id, "change", calcDose);
     });
 
-    // Registrar Service Worker (offline)
+    // Hyd
+    on("h_calcBtn","click", calcHyd);
+    on("h_clearBtn","click", clearHyd);
+    on("h_copyBtn","click", copyHyd);
+    on("h_mode","change", showHydModeBoxes);
+
+    ["h_peso","h_pesoUnit","h_mlkg","h_n","h_round","h_dehyd","h_maint","h_hours","h_losses","h_n2","h_round2"].forEach(id => {
+      on(id, "input", calcHyd);
+      on(id, "change", calcHyd);
+    });
+
+    // Init
+    showHydModeBoxes();
+    calcDose();
+    calcHyd();
+
+    // Service Worker (offline)
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./service-worker.js").catch(() => {});
