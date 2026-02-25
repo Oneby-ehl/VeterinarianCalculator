@@ -1,1 +1,281 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora de dosis</title>
 
+  <!-- PWA -->
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+
+  <style>
+    :root { --pad: 16px; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #0b0f14; color: #e8eef6;
+    }
+    .wrap { max-width: 520px; margin: 0 auto; padding: 24px var(--pad); }
+    .card {
+      background: #121826; border: 1px solid #1f2a3a; border-radius: 18px;
+      padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    h1 { font-size: 18px; margin: 0 0 12px; font-weight: 650; letter-spacing: .2px;}
+    label { display: block; font-size: 13px; opacity: .85; margin: 14px 0 6px; }
+    input, select {
+      width: 100%; font-size: 18px; padding: 14px 12px;
+      border-radius: 14px; border: 1px solid #263246; background: #0e1421; color: #e8eef6;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: #4b7bec; }
+    .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    button {
+      font-size: 16px; padding: 14px 12px; border-radius: 14px; border: 1px solid #263246;
+      background: #18243a; color: #e8eef6; cursor: pointer;
+    }
+    button.primary { background: #2d5bff; border-color: #2d5bff; font-weight: 650; }
+    button.ghost { background: #111a2a; }
+    .result {
+      margin-top: 16px; padding: 16px; border-radius: 16px;
+      background: #0e1421; border: 1px dashed #2a3a55;
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    }
+    .result small { opacity: .7; }
+    .result b { font-size: 34px; letter-spacing: .3px; }
+    .hint { margin-top: 12px; font-size: 12px; opacity: .65; line-height: 1.35; }
+    .warn { margin-top: 10px; font-size: 12px; opacity: .9; color: #ffd36e; display:none; }
+    .ok { margin-top: 10px; font-size: 12px; opacity: .9; color: #8bffb0; display:none; }
+    .subgrid { display:grid; grid-template-columns: 1fr 140px; gap: 10px; align-items: center; }
+    .subgrid2 { display:grid; grid-template-columns: 1fr 140px; gap: 10px; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Calculadora de dosis (mg/kg → ml)</h1>
+
+      <label>Peso</label>
+      <div class="subgrid">
+        <input id="peso" inputmode="decimal" placeholder="Ej: 1200" />
+        <select id="pesoUnit" aria-label="Unidad de peso">
+          <option value="g" selected>g</option>
+          <option value="kg">kg</option>
+        </select>
+      </div>
+
+      <label for="dosis">Dosis indicada</label>
+      <div class="subgrid2">
+        <input id="dosis" inputmode="decimal" placeholder="Ej: 10" />
+        <select disabled aria-label="Unidad de dosis">
+          <option selected>mg/kg</option>
+        </select>
+      </div>
+
+      <label>Concentración del medicamento</label>
+      <div class="subgrid2">
+        <input id="conc" inputmode="decimal" placeholder="Ej: 50" />
+        <select id="concUnit" aria-label="Unidad de concentración">
+          <option value="mgml" selected>mg/ml</option>
+          <option value="mgL">mg/L</option>
+        </select>
+      </div>
+
+      <label for="redondeo">Redondeo</label>
+      <div class="subgrid2">
+        <input id="redondeo" inputmode="decimal" value="0.01" />
+        <select disabled aria-label="Unidad de redondeo">
+          <option selected>ml</option>
+        </select>
+      </div>
+
+      <div class="btns">
+        <button class="primary" id="calcBtn">Calcular</button>
+        <button id="clearBtn">Limpiar</button>
+      </div>
+
+      <div class="btns" style="margin-top:10px;">
+        <button class="ghost" id="copyBtn">Copiar resultado</button>
+        <button class="ghost" id="swapBtn" title="Intercambia mg/ml ↔ mg/L manteniendo el mismo valor físico">Cambiar unidad</button>
+      </div>
+
+      <div class="result" aria-live="polite">
+        <div>
+          <small>Volumen a administrar</small><br/>
+          <b id="out">—</b>
+        </div>
+        <small>ml</small>
+      </div>
+
+      <div class="warn" id="warn"></div>
+      <div class="ok" id="ok"></div>
+
+      <div class="hint">
+        Internamente: (peso en kg × dosis mg/kg) / concentración (mg/ml).<br/>
+        Esta herramienta solo calcula volumen; la pauta/dosis la indica el veterinario.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function parseNum(v){
+      if (typeof v !== "string") return NaN;
+      v = v.trim().replace(",", ".");
+      return Number(v);
+    }
+
+    function roundTo(x, step){
+      if (!isFinite(x) || !isFinite(step) || step <= 0) return x;
+      return Math.round(x / step) * step;
+    }
+
+    function decimalsForStep(step){
+      if (!isFinite(step) || step <= 0) return 2;
+      const s = step.toString();
+      if (s.includes("e-")) return Math.min(6, Number(s.split("e-")[1]) || 2);
+      const pos = s.indexOf(".");
+      return pos === -1 ? 0 : Math.min(6, s.length - pos - 1);
+    }
+
+    function formatMl(value, step){
+      const dec = Math.max(2, decimalsForStep(step));
+      return value.toFixed(dec);
+    }
+
+    function getPesoKg(){
+      const p = parseNum($("peso").value);
+      const unit = $("pesoUnit").value;
+      if (!isFinite(p) || p < 0) return NaN;
+      return unit === "g" ? (p / 1000) : p;
+    }
+
+    function getConcMgPerMl(){
+      const c = parseNum($("conc").value);
+      const unit = $("concUnit").value;
+      if (!isFinite(c) || c <= 0) return NaN;
+      return unit === "mgL" ? (c / 1000) : c;
+    }
+
+    function setStatus(type, text){
+      $("warn").style.display = "none";
+      $("ok").style.display = "none";
+      $("warn").textContent = "";
+      $("ok").textContent = "";
+      if (!text) return;
+      if (type === "warn") {
+        $("warn").textContent = text;
+        $("warn").style.display = "block";
+      } else {
+        $("ok").textContent = text;
+        $("ok").style.display = "block";
+      }
+    }
+
+    function calc(){
+      setStatus(null, null);
+
+      const pesoKg = getPesoKg();
+      const dosis = parseNum($("dosis").value);
+      const concMgMl = getConcMgPerMl();
+      const step = parseNum($("redondeo").value);
+
+      if (![pesoKg, dosis, concMgMl].every(n => isFinite(n)) || dosis < 0){
+        $("out").textContent = "—";
+        setStatus("warn", "Revisa los datos (números válidos; concentración > 0).");
+        return;
+      }
+
+      const ml = (pesoKg * dosis) / concMgMl;
+      const mlR = roundTo(ml, step);
+
+      if (!isFinite(mlR)) {
+        $("out").textContent = "—";
+        setStatus("warn", "No se pudo calcular. Revisa unidades/valores.");
+        return;
+      }
+
+      $("out").textContent = formatMl(mlR, step);
+
+      if (mlR > 10) {
+        setStatus("warn", "Aviso: volumen alto. Confirma concentración/unidades.");
+      } else if (mlR > 0 && mlR < 0.02) {
+        setStatus("warn", "Aviso: volumen muy bajo. Considera dilución/precisión de jeringa.");
+      }
+    }
+
+    function clearAll(){
+      $("peso").value = "";
+      $("dosis").value = "";
+      $("conc").value = "";
+      $("out").textContent = "—";
+      setStatus(null, null);
+    }
+
+    async function copyResult(){
+      setStatus(null, null);
+      const txt = $("out").textContent;
+      if (!txt || txt === "—") {
+        setStatus("warn", "No hay resultado para copiar.");
+        return;
+      }
+      const payload = `${txt} ml`;
+      try {
+        await navigator.clipboard.writeText(payload);
+        setStatus("ok", "Copiado al portapapeles.");
+      } catch (e) {
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = payload;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          setStatus("ok", "Copiado al portapapeles.");
+        } catch (e2) {
+          setStatus("warn", "El navegador no permitió copiar automáticamente.");
+        }
+      }
+    }
+
+    function swapConcUnitKeepPhysical(){
+      const c = parseNum($("conc").value);
+      if (!isFinite(c) || c <= 0) {
+        $("concUnit").value = ($("concUnit").value === "mgml") ? "mgL" : "mgml";
+        calc();
+        return;
+      }
+      const unit = $("concUnit").value;
+      if (unit === "mgml") {
+        $("conc").value = (c * 1000).toString();
+        $("concUnit").value = "mgL";
+      } else {
+        $("conc").value = (c / 1000).toString();
+        $("concUnit").value = "mgml";
+      }
+      calc();
+    }
+
+    $("calcBtn").addEventListener("click", calc);
+    $("clearBtn").addEventListener("click", clearAll);
+    $("copyBtn").addEventListener("click", copyResult);
+    $("swapBtn").addEventListener("click", swapConcUnitKeepPhysical);
+
+    ["peso","pesoUnit","dosis","conc","concUnit","redondeo"].forEach(id => {
+      $(id).addEventListener("input", calc);
+      $(id).addEventListener("change", calc);
+    });
+
+    // Registrar Service Worker (offline)
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
