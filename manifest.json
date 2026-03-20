@@ -1,6 +1,6 @@
 {
-  "name": "Calculadora de dosis — GREFA",
-  "short_name": "GREFA Dosis",
+  "name": "Calculadora de dosis Veterinaria",
+  "short_name": "Dosis Veterinaria",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
