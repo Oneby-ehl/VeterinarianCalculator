@@ -44,6 +44,9 @@ Herramienta de apoyo al cálculo.
 
 © 2026 Oneby-EHL
 
+## Versión
+v1.0.0
+
 ## 📄 Licencia
 
 Este proyecto está bajo la licencia MIT.
