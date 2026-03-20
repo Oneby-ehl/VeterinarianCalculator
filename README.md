@@ -6,7 +6,7 @@ Diseñada para uso práctico en campo o clínica, con funcionamiento offline.
 
 ## 🚀 Acceso
 
-https://oneby-ehl.github.io/GrefaVetCalculator/
+https://oneby-ehl.github.io/VeterinarianCalculator/
 
 ## ✨ Funcionalidades
 
