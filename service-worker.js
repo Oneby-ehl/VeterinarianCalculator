@@ -3,13 +3,17 @@ const ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon.svg",
-  "./service-worker.js"
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(ASSETS).catch(err => {
+        console.error("Error cacheando:", err);
+      })
+    )
   );
   self.skipWaiting();
 });
