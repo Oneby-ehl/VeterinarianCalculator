@@ -1,4 +1,4 @@
-const CACHE_NAME = "dosis-pwa-v13";
+const CACHE_NAME = "dosis-pwa-v12";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -14,7 +14,12 @@ self.addEventListener("install", (event) => {
       await cache.addAll(APP_SHELL);
     })()
   );
-  self.skipWaiting();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {
@@ -39,7 +44,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (!url.protocol.startsWith("http")) return;
 
-  // Navegaciones HTML: cache-first real
+  // Navegación HTML: cache-first para máxima autonomía offline
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
@@ -50,7 +55,10 @@ self.addEventListener("fetch", (event) => {
         if (cachedPage) return cachedPage;
 
         try {
-          return await fetch(req);
+          const fresh = await fetch(req);
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put("./index.html", fresh.clone());
+          return fresh;
         } catch {
           return new Response("Sin conexión y sin caché disponible.", {
             status: 503,
