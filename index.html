@@ -102,6 +102,16 @@
     <div class="topbar">
       <div class="brand">GREFA · Calculadoras</div>
       <div id="netStatus" style="font-size:12px;opacity:.7">comprobando...</div>
+      <div id="updateBanner" class="ok" style="display:none; margin-bottom:12px;">
+  Hay una nueva versión disponible.
+  <button id="updateBtn" class="ghost" style="margin-left:10px; padding:8px 10px; font-size:13px;">
+    Actualizar
+  </button>
+</div>
+
+<div id="offlineBanner" class="warn" style="display:none; margin-bottom:12px;">
+  Estás usando la app en modo offline.
+</div>
     </div>
 
     <div class="tabs">
@@ -567,11 +577,105 @@
     updateNetStatus();
     
     // Service Worker (offline)
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
-      });
+// ---------- Network status + offline banner + SW updates ----------
+let swRegistration = null;
+let newWorker = null;
+
+function updateNetStatus() {
+  const el = document.getElementById("netStatus");
+  const offlineBanner = document.getElementById("offlineBanner");
+  if (!el) return;
+
+  if (navigator.onLine) {
+    el.textContent = "🟢 online";
+    el.style.color = "#8bffb0";
+    if (offlineBanner) offlineBanner.style.display = "none";
+  } else {
+    el.textContent = "🟡 offline";
+    el.style.color = "#ffd36e";
+    if (offlineBanner) offlineBanner.style.display = "block";
+  }
+}
+
+function showUpdateBanner(worker) {
+  newWorker = worker;
+  const banner = document.getElementById("updateBanner");
+  if (banner) banner.style.display = "block";
+}
+
+function hideUpdateBanner() {
+  const banner = document.getElementById("updateBanner");
+  if (banner) banner.style.display = "none";
+}
+
+function listenForWaitingServiceWorker(reg) {
+  if (!reg) return;
+
+  if (reg.waiting) {
+    showUpdateBanner(reg.waiting);
+    return;
+  }
+
+  reg.addEventListener("updatefound", () => {
+    const installingWorker = reg.installing;
+    if (!installingWorker) return;
+
+    installingWorker.addEventListener("statechange", () => {
+      // Cuando termina de instalarse una nueva versión y ya había una activa,
+      // significa que hay update lista para aplicar.
+      if (
+        installingWorker.state === "installed" &&
+        navigator.serviceWorker.controller
+      ) {
+        showUpdateBanner(installingWorker);
+      }
+    });
+  });
+}
+
+window.addEventListener("online", updateNetStatus);
+window.addEventListener("offline", updateNetStatus);
+
+const updateBtn = document.getElementById("updateBtn");
+if (updateBtn) {
+  updateBtn.addEventListener("click", () => {
+    if (newWorker) {
+      newWorker.postMessage({ type: "SKIP_WAITING" });
     }
+  });
+}
+
+// Cuando el nuevo SW toma el control, recargamos para coger la versión nueva
+let refreshing = false;
+navigator.serviceWorker?.addEventListener("controllerchange", () => {
+  if (refreshing) return;
+  refreshing = true;
+  window.location.reload();
+});
+
+// Registro del service worker
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      swRegistration = await navigator.serviceWorker.register("./service-worker.js");
+      listenForWaitingServiceWorker(swRegistration);
+
+      // Comprobar updates al abrir
+      swRegistration.update().catch(() => {});
+
+      // También comprobar de nuevo cuando vuelve la conexión
+      window.addEventListener("online", () => {
+        if (swRegistration) swRegistration.update().catch(() => {});
+      });
+    } catch (_) {
+      // Silencio
+    }
+  });
+}
+
+// Estado inicial
+updateNetStatus();
+hideUpdateBanner();
   </script>
 </body>
 </html>
