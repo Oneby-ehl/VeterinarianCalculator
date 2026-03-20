@@ -1,4 +1,4 @@
-const CACHE_NAME = "dosis-pwa-v13";
+const CACHE_NAME = "dosis-pwa-v14";
 const APP_SHELL = [
   "./",
   "./index.html",
