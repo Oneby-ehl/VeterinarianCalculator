@@ -100,8 +100,8 @@
 <body>
   <div class="wrap">
     <div class="topbar">
-      <div class="brand">🦉 GREFA · Calculadoras</div>
-      <div style="font-size:12px;opacity:.7">offline</div>
+      <div class="brand">GREFA · Calculadoras</div>
+      <div id="netStatus" style="font-size:12px;opacity:.7">comprobando...</div>
     </div>
 
     <div class="tabs">
@@ -546,6 +546,26 @@
     calcDose();
     calcHyd();
 
+    // ---------- Network status (online/offline real) ----------
+    function updateNetStatus() {
+     const el = document.getElementById("netStatus");
+      if (!el) return;
+
+      if (navigator.onLine) {
+        el.textContent = "🟢 online";
+        el.style.color = "#8bffb0";
+      } else {
+        el.textContent = "🟡 offline";
+        el.style.color = "#ffd36e";
+      }
+    }
+
+    window.addEventListener("online", updateNetStatus);
+    window.addEventListener("offline", updateNetStatus);
+
+    // Ejecutar al cargar
+    updateNetStatus();
+    
     // Service Worker (offline)
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
