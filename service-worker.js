@@ -1,10 +1,10 @@
-const CACHE_NAME = "dosis-pwa-v11";
+const CACHE_NAME = "dosis-pwa-v12";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
   "./icons/icon-192.png",
-  "./icons/icon-512.png",
+  "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -34,69 +34,52 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
 
-  // Solo manejamos GET
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
-
-  // Solo manejamos http/https
   if (!url.protocol.startsWith("http")) return;
 
-  // Navegación HTML: network first con fallback a cache
+  // Navegaciones HTML: cache-first real
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
+        const cachedPage =
+          (await caches.match("./index.html")) ||
+          (await caches.match("./"));
+
+        if (cachedPage) return cachedPage;
+
         try {
-          const fresh = await fetch(req);
-          const cache = await caches.open(CACHE_NAME);
-          cache.put("./index.html", fresh.clone());
-          return fresh;
+          return await fetch(req);
         } catch {
-          return (
-            (await caches.match(req)) ||
-            (await caches.match("./")) ||
-            (await caches.match("./index.html"))
-          );
+          return new Response("Sin conexión y sin caché disponible.", {
+            status: 503,
+            headers: { "Content-Type": "text/plain; charset=utf-8" }
+          });
         }
       })()
     );
     return;
   }
 
-  // Resto de recursos: cache first + actualización en segundo plano
+  // Resto de recursos: cache-first
   event.respondWith(
     (async () => {
       const cached = await caches.match(req);
-      if (cached) {
-        event.waitUntil(updateCache(req));
-        return cached;
-      }
+      if (cached) return cached;
 
       try {
         const fresh = await fetch(req);
 
         if (fresh && fresh.ok) {
           const cache = await caches.open(CACHE_NAME);
-          cache.put(req, fresh.clone());
+          await cache.put(req, fresh.clone());
         }
 
         return fresh;
       } catch {
-        // Fallback simple para recursos no HTML
-        return cached || Response.error();
+        return Response.error();
       }
     })()
   );
 });
-
-async function updateCache(req) {
-  try {
-    const fresh = await fetch(req);
-    if (!fresh || !fresh.ok) return;
-
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put(req, fresh.clone());
-  } catch {
-    // Silencio: si falla red, nos quedamos con lo cacheado
-  }
-}
